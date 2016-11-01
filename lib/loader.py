@@ -338,7 +338,7 @@ class CuneiformSetLoader(LanguageLoader):
 
 
 if __name__ == "__main__":
-    CL = CuneiformSetLoader("RotatedDatabase",48)
+    CL = CuneiformSetLoader(48,'/home/jan/Desktop/Cuneiform/Data/img/newData27343')
     print CL.get_symbol(0,0,0)
 
     import matplotlib.pyplot as plt

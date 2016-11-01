@@ -12,9 +12,7 @@ def createPath(self, path):
 def getErrorMat(pred, truth, lim=0.5):
     pred = np.array(pred)
     truth = np.array(truth)
-    print pred.shape
-    print truth.shape
-    print ((pred < lim) * (truth == 0)).shape
+
     TP = np.sum((pred < lim) * (truth == 0))
     TN = np.sum((pred > lim) * (truth != 0))
     FN = np.sum((pred > lim) * (truth == 0))

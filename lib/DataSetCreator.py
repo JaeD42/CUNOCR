@@ -24,7 +24,8 @@ class DatasetCreator(object):
         self.sort_by = sort_by
         self.max_imgs_from_datset = 50
         self.px=px
-        self.loader = Load.CuneiformSetLoader(dataPath,px)
+
+        self.loader = Load.CuneiformSetLoader(px,dataPath)
         self.savePath = savePath
         if not self.savePath[-1]=="/":
             self.savePath=self.savePath+"/"
@@ -99,6 +100,7 @@ class DatasetCreator(object):
         t=time.time()
         n = self.net
         for d in self.data:
+            d=[np.reshape(misc.imresize(i[:,:,0],(48,48)),(48,48,1)) for i in d]
             self.encoding.append(self.session.run(n.enc1,feed_dict={n.x1:d[:self.max_imgs_from_datset]}))
 
         print "Encodings done in %s seconds"%(time.time()-t)
@@ -413,12 +415,12 @@ class DatasetCreator(object):
 
 
 if __name__=="__main__":
-    import Nets.SiameseMetric as sNet
+    import Nets.SiameseNet as sNet
     import tensorflow as tf
-    netPath = "/home/jan/Desktop/Cuneiform/savedNets/SiameseBackupMetric4_Cun_100.ckpt"
+    netPath = "/home/jan/Desktop/Cuneiform/savedNets/SiameseBackup4_Cun_100.ckpt"
     net, saver = sNet.runInit(sNet.backup3Net)
     sess = tf.Session()
     sNet.runRestore(sess, saver, netPath)
-    dsc = DatasetCreator("/home/jan/Desktop/Cuneiform/img/newData27343/","/home/jan/Desktop/Cuneiform/img/newData27344",net,sess,px=64,sort_by=lambda x:np.sum(np.log(x+0.1)))
+    dsc = DatasetCreator("/home/jan/Desktop/Cuneiform/Data/img/newData27345","/home/jan/Desktop/Cuneiform/Data/img/newData27346",net,sess,px=64,sort_by=lambda x:np.mean(x))
     dsc.combine()
 
