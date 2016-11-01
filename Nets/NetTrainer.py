@@ -35,3 +35,8 @@ class NetTrainer(object):
         return {"TP":TP, "TN":TN, "FP":FP, "FN":FN}
 
 
+
+if __name__=="__main__":
+    print "test"
+
+
