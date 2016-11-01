@@ -1,8 +1,6 @@
 import os
 import sys
-import lib.usefulFunctions as use_func
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-folder_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))+"/"
+import lib.usefulFunctions as u_func
 
 from Nets.SiameseMetric import SiameseNetMetric as mNet
 from Nets.SiameseNet import SiameseNetClassic as sNet
@@ -28,26 +26,23 @@ class NetCreator(object):
             self.clay = conv_layer_size
             self.cdim = conv_dim
 
-
+        self.net.build()
         self.saver = tf.train.Saver()
 
 
-        self.trainDataLoader = None
-        self.testDataLoader = None
 
-    def addTrainDataLoader(self,LoaderClass, path):
-        self.trainDataLoader = LoaderClass(self.px, path)
 
-    def addTestDataLoader(self,LoaderClass, path):
-        self.testDataLoader = LoaderClass(self.px, path)
 
 
     def saveNet(self, session, folder_name="", optional_file_name="", addendum=""):
+        folder_path = u_func.getFolderPath()
+
         if folder_name=="":
             folder_name="savedNets"
 
+
         path = folder_path+folder_name
-        use_func.createPath(path)
+        u_func.createPath(path)
 
         if optional_file_name=="":
             if self.creator_func == None:

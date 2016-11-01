@@ -36,9 +36,9 @@ class LanguageLoader(object):
         import itertools
         import random
         
-        example_list = itertools.product(example_list,example_list)
+        example_list = itertools.combinations(example_list,2)
 
-        example_list = [val for val in example_list if val[0]!=val[1]]
+        example_list = [val for val in example_list]
         
         random.shuffle(example_list)
 

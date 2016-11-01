@@ -80,7 +80,7 @@ class SiameseNetClassic(Net):
         self.dec_weights = ops.conv_weight_bias([self.encoding_size,1])
 
         self.params.extend(self.dec_weights)
-        self.y_pred = tf.nn.sigmoid(tf.matmul(tf.abs(self.enc1-self.enc2), self.dec_weights[0]) + self.dec_weights[1])
+        self.y_pred = tf.reshape(tf.nn.sigmoid(tf.matmul(tf.abs(self.enc1-self.enc2), self.dec_weights[0]) + self.dec_weights[1]),[-1])
 
         self.class_cost = tf.reduce_mean(
             -tf.mul(1 - self.y_true, tf.log(tf.clip_by_value(self.y_pred, 0.0001, 0.9999)))) - tf.reduce_mean(
