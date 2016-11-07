@@ -69,7 +69,7 @@ class SiameseNetClassic(Net):
         self.x1 = tf.placeholder(tf.float32, shape=self.shape, name="x1")
         self.x2 = tf.placeholder(tf.float32, shape=self.shape, name="x2")
 
-        self.y_true = tf.placeholder(tf.float32, shape=[self.shape[0], 1])
+        self.y_true = tf.placeholder(tf.float32, shape=[self.shape[0]])
 
         with tf.variable_scope("image_filters") as scope:
             self.enc1=self.build_encoding(self.x1)
@@ -83,8 +83,8 @@ class SiameseNetClassic(Net):
         self.y_pred = tf.reshape(tf.nn.sigmoid(tf.matmul(tf.abs(self.enc1-self.enc2), self.dec_weights[0]) + self.dec_weights[1]),[-1])
 
         self.class_cost = tf.reduce_mean(
-            -tf.mul(1 - self.y_true, tf.log(tf.clip_by_value(self.y_pred, 0.0001, 0.9999)))) - tf.reduce_mean(
-            tf.mul(self.y_true, tf.log(1 - tf.clip_by_value(self.y_pred, 0.0001, 0.9999))))
+            -tf.mul(self.y_true, tf.log(tf.clip_by_value(self.y_pred, 0.0001, 0.9999)))) - tf.reduce_mean(
+            tf.mul(1-self.y_true, tf.log(1 - tf.clip_by_value(self.y_pred, 0.0001, 0.9999))))
 
         self.cost = self.class_cost
         self.reg_cost = tf.reduce_sum(tf.get_collection(tf.GraphKeys.REGULARIZATION_LOSSES))*self.reg_constant

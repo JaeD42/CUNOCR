@@ -46,6 +46,8 @@ class DatasetCreator(object):
         self.pre_calc_enc()
         self.similarities = self.calc_sims()
         self.similarities.sort(key=lambda x: self.sort_by(x[2]))
+        self.similarities.sort(key=lambda x:min(x[0],x[1]))
+
         same,dSet =self.run_gui_combine_fast()
         foldNumber = 0
 
@@ -274,6 +276,8 @@ class DatasetCreator(object):
         canvas._tkcanvas.pack(side=tk.TOP, fill=tk.BOTH, expand=1)
 
         def show_next():
+            while np.mean(self.similarities[self.dataInd][2])>0.3 and len(self.similarities)>self.dataInd+1:
+                self.dataInd+=1
             print np.mean(self.similarities[self.dataInd][2])
             self.lastInd.append(self.dataInd)
             self.dataInd=min(len(self.similarities)-1,self.dataInd+1)
@@ -421,6 +425,6 @@ if __name__=="__main__":
     net, saver = sNet.runInit(sNet.backup3Net)
     sess = tf.Session()
     sNet.runRestore(sess, saver, netPath)
-    dsc = DatasetCreator("/home/jan/Desktop/Cuneiform/Data/img/newData27345","/home/jan/Desktop/Cuneiform/Data/img/newData27346",net,sess,px=64,sort_by=lambda x:np.mean(x))
+    dsc = DatasetCreator("/home/jan/Desktop/Cuneiform/Data/img/newData27346","/home/jan/Desktop/Cuneiform/Data/img/newData27347",net,sess,px=64,sort_by=lambda x:np.mean(x))
     dsc.combine()
 

@@ -4,7 +4,7 @@ import sys
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 folder_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))+"/"
 import numpy as np
-def createPath(self, path):
+def createPath(path):
     if not os.path.exists(path):
         os.makedirs(path)
 

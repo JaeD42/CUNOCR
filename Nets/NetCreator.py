@@ -12,10 +12,10 @@ class NetCreator(object):
     """
 
     def __init__(self,creator_func=None,batch_size = 128, px = 48,p_same=0.05, encoding_size=600, conv_layer_size=[20, 40, 60, 100], conv_dim=[7, 5, 3, 3],fcl_layer_size=[], netClass = sNet):
-
+        self.creator_func = creator_func
         if creator_func!=None:
             self.batch_size, self.px, self.net, self.p_same = creator_func()
-            self.creator_func=creator_func
+
         else:
             self.batch_size=batch_size
             self.px=px
@@ -46,7 +46,7 @@ class NetCreator(object):
 
         if optional_file_name=="":
             if self.creator_func == None:
-                optional_file_name = "%s_px%s_enc%s_clay%s_cdim%s"%(self.net.__class__.__name__,self.enc,self.clay,self.cdim)
+                optional_file_name = "%s_px%s_enc%s_clay%s_cdim%s"%(self.net.__class__.__name__,self.px,self.enc,self.clay,self.cdim)
             else:
                 optional_file_name = "%s_func%s"%(self.net.__class__.__name__,self.creator_func.__name__)
         optional_file_name=path+optional_file_name+addendum
@@ -64,5 +64,9 @@ class NetCreator(object):
 
     def loadNet(self,session,path):
         self.saver.restore(session, path)
+
+    def initNet(self,session):
+        init = tf.initialize_all_variables()
+        session.run(init)
 
 

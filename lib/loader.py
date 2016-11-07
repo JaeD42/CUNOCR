@@ -154,7 +154,7 @@ class LanguageLoader(object):
 
 class OmniGlotLoader(object):
 
-    def __init__(self,px, path = "lib/omniglot-master/images/"):
+    def __init__(self,px, path = "Data/Datasets/omniglot-master/images/"):
         self.px = px
         #self.path = path
         self.path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))+"/" + path
@@ -266,7 +266,7 @@ class OmniGlotLoader(object):
             randx1, randx2 = np.random.randint(0, len(rand_symb), 2)
             x1.append(rand_symb[randx1])
             x2.append(rand_symb[randx2])
-            y.append([1])
+            y.append(1)
 
         for i in range(batchsize - int(p_same * batchsize)):
             rand_lan1 = used_set[np.random.randint(0, len(used_set))]
@@ -279,7 +279,7 @@ class OmniGlotLoader(object):
             randx2 = np.random.randint(0, len(rand_symb2))
             x1.append(rand_symb1[randx1])
             x2.append(rand_symb2[randx2])
-            y.append([int(rand_symb1Num == rand_symb2Num)])
+            y.append(int(rand_symb1Num == rand_symb2Num))
 
         return x1, x2, y
 
