@@ -138,18 +138,24 @@ class SiameseNetClassic(Net):
 
         return float(c)/s, pic
 
+
+    def calc_dist_mat_from_encs(self,session,encs,batchsize=128):
+        arr=[]
+        for symb in encs:
+            x2 =[symb for i in range(batchsize)]
+            tArr = []
+            for i in range(0,len(encs),batchsize):
+                tArr.extend(np.reshape(session.run(self.y_pred,feed_dict={self.enc1:encs[i:i+batchsize], self.enc2:x2[0:len(encs[i:i+batchsize])]}),(-1)))
+            arr.append(tArr)
+        return arr
+
+
     def calc_dist_mat(self,session,x_in, batchsize=128):
         x1 = []
         for i in range(0, len(x_in), batchsize):
             x1.extend(session.run(self.enc1, feed_dict={self.x1: x_in[i:i + batchsize]}))
-        arr=[]
-        for symb in x1:
-            x2 =[symb for i in range(batchsize)]
-            tArr = []
-            for i in range(0,len(x1),batchsize):
-                tArr.extend(np.reshape(session.run(self.y_pred,feed_dict={self.enc1:x1[i:i+batchsize], self.enc2:x2[0:len(x1[i:i+batchsize])]}),(-1)))
-            arr.append(tArr)
-        return arr
+
+        return self.calc_dist_mat_from_encs(session,x1,batchsize)
 
 
     def iterable_dist_mat(self,session,x1, batchsize=128):

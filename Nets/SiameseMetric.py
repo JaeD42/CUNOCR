@@ -69,7 +69,7 @@ class SiameseNetMetric(Net):
         self.x1 = tf.placeholder(tf.float32, shape=self.shape, name="x1")
         self.x2 = tf.placeholder(tf.float32, shape=self.shape, name="x2")
 
-        self.y_true = tf.placeholder(tf.float32, shape=[self.shape[0], 1])
+        self.y_true = tf.placeholder(tf.float32, shape=[self.shape[0]])
 
         with tf.variable_scope("image_filters") as scope:
             self.enc1=self.build_encoding(self.x1)
@@ -80,11 +80,11 @@ class SiameseNetMetric(Net):
         self.dec_weights = ops.conv_weight_bias([self.encoding_size,1])
 
         self.params.extend(self.dec_weights)
-        self.y_pred = tf.nn.tanh(tf.matmul(tf.abs(self.enc1-self.enc2), tf.square(self.dec_weights[0])))
+        self.y_pred = tf.reshape(tf.nn.tanh(tf.matmul(tf.abs(self.enc1-self.enc2), tf.square(self.dec_weights[0]))),[-1])
 
         self.class_cost = tf.reduce_mean(
-            -tf.mul(1 - self.y_true, tf.log(tf.clip_by_value(self.y_pred, 0.0001, 0.9999)))) - tf.reduce_mean(
-            tf.mul(self.y_true, tf.log(0.99991 - tf.clip_by_value(self.y_pred, 0.0001, 0.9999))))
+            -tf.mul(self.y_true, tf.log(tf.clip_by_value(self.y_pred, 0.0001, 0.9999)))) - tf.reduce_mean(
+            tf.mul(1-self.y_true, tf.log(1 - tf.clip_by_value(self.y_pred, 0.0001, 0.9999))))
 
         self.cost = self.class_cost
         self.reg_cost = tf.reduce_sum(tf.get_collection(tf.GraphKeys.REGULARIZATION_LOSSES))*self.reg_constant
@@ -114,18 +114,23 @@ class SiameseNetMetric(Net):
         #self.learning_rate*=self.decay
         return session.run([self.optimizer,self.class_cost,self.enc1,self.enc2,self.reg_cost], feed_dict={self.x1:x1,self.x2:x2,self.y_true:y_true, self.lr:self.learning_rate})
 
+    def calc_dist_mat_from_encs(self,session,encs,batchsize=128):
+        arr=[]
+        for symb in encs:
+            x2 =[symb for i in range(batchsize)]
+            tArr = []
+            for i in range(0,len(encs),batchsize):
+                tArr.extend(np.reshape(session.run(self.y_pred,feed_dict={self.enc1:encs[i:i+batchsize], self.enc2:x2[0:len(encs[i:i+batchsize])]}),(-1)))
+            arr.append(tArr)
+        return arr
+
+
     def calc_dist_mat(self,session,x_in, batchsize=128):
         x1 = []
         for i in range(0, len(x_in), batchsize):
             x1.extend(session.run(self.enc1, feed_dict={self.x1: x_in[i:i + batchsize]}))
-        arr=[]
-        for symb in x1:
-            x2 =[symb for i in range(batchsize)]
-            tArr = []
-            for i in range(0,len(x1),batchsize):
-                tArr.extend(np.reshape(session.run(self.y_pred,feed_dict={self.enc1:x1[i:i+batchsize], self.enc2:x2[0:len(x1[i:i+batchsize])]}),(-1)))
-            arr.append(tArr)
-        return arr
+
+        return self.calc_dist_mat_from_encs(session,x1,batchsize)
 
     def test_on_sample(self,session,x1,x2,y_true):
         c=0
@@ -136,12 +141,12 @@ class SiameseNetMetric(Net):
             s+=1
 
             pred =session.run(self.pred_class,feed_dict={self.x1:x1[ind],self.x2:x2[ind]})
-            c+=(pred[0]==y_true[ind])
+            c+=(pred==y_true[ind])
             if ind<numVis:
                 #pic[0:32, 32 * ind:32 * (ind + 1)] = x1[ind][y_true[ind]][:,:,0]
                 #pic[32:64, 32 * ind:32 * (ind + 1)] = x2[ind][pred[0]][:,:,0]
                 pic[0:self.shape[1]             , self.shape[2] * ind:self.shape[2] * (ind + 1)] = x1[ind][y_true[ind]][:,:,0]
-                pic[self.shape[1]:2*self.shape[1], self.shape[2] * ind:self.shape[2] * (ind + 1)] = x2[ind][pred[0]][:,:,0]
+                pic[self.shape[1]:2*self.shape[1], self.shape[2] * ind:self.shape[2] * (ind + 1)] = x2[ind][pred][:,:,0]
 
 
 
@@ -205,6 +210,16 @@ def backup4Net():
     p_same = 0.05
     return batch, px, net, p_same
 
+def backup8Net():
+    batch = 128
+    px = 48
+    net = SiameseNetMetric([None, px, px, 1], fcl_layer_size=[], encoding_size=480,
+                            conv_layer_size=[20, 40, 70, 120], conv_dim=[9, 7, 5, 3], regularization=True, reg_constant=0.005)
+
+    p_same = 0.025
+    return batch, px, net, p_same
+
+
 
 def runInit(backupFunc=backup1Net):
     batch,px,net,_ = backupFunc()
@@ -216,21 +231,26 @@ def runRestore(sess,saver,path):
     saver.restore(sess, path)
 
 if __name__ == "__main__":
-    batch,px,net,p_same = backup2Net()
+    batch,px,net,p_same = backup8Net()
     #imVis = vis.ImageVisualiser("Predicted Classes",(px*2,px*10))
     net.build()
     omni = loader.OmniGlotLoader(px)
     init=tf.initialize_all_variables()
     saver = tf.train.Saver()
     iterations = 1000000
-    do_init=True
+    do_init=False
 
     import time
-    with tf.Session() as sess:
+
+    config = tf.ConfigProto(
+        device_count={'GPU': 0}
+    )
+
+    with tf.Session(config=config) as sess:
         if do_init:
             sess.run(init)
         else:
-            saver.restore(sess,"savedNets/SiameseBackup1_%s.ckpt"%(99999))
+            saver.restore(sess,folder_path+"savedNets/SiameseMetricBackup8_30k+_120000.ckpt")
         cSum=0
         regSum=0
         start = time.time()
@@ -258,5 +278,5 @@ if __name__ == "__main__":
 
             if i%10000==0 or i==iterations-1:
                 #pass
-                save_path = saver.save(sess, folder_path+"savedNets/SiameseMetricBackup2_%s.ckpt"%i)
+                save_path = saver.save(sess, folder_path+"savedNets/SiameseMetricBackup8_30k+_%s.ckpt"%i)
                 print("Model saved in file: %s" % save_path)

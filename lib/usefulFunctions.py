@@ -20,6 +20,23 @@ def getErrorMat(pred, truth, lim=0.5):
 
     return {"TP":TP, "TN":TN, "FP":FP, "FN":FN}
 
+def dists_encs(x,arr,net,session,batchsize=128):
+    dists=[]
+    rep_x = np.repeat([x],batchsize,axis=0)
+    for i in range(0,len(arr),128):
+        i_e = min(i+128,len(arr))
+        dists.extend(session.run(net.y_pred,feed_dict={net.enc1:arr[i:i_e],net.enc2:rep_x[:i_e-i]}))
+    return dists
+
+
+def getEncoding(imgList,net,session):
+    encs = []
+    for i in range(0,len(imgList),128):
+        encs.extend(session.run(net.enc1,feed_dict={net.x1:imgList[i:i+128]}))
+    return encs
+
+#def getDistsFromEncs(enc1,encList,net,session)
+
 
 def getFolderPath():
     return folder_path

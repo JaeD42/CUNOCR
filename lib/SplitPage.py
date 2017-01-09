@@ -110,9 +110,11 @@ def run(copy_region=False,px=32, do_dist=True, page_Path = "/home/jan/Desktop/Cu
         #path = "/home/jan/Desktop/Cuneiform/savedNets/SiameseBackup4_2_fin2.ckpt"
         path = "/home/jan/Desktop/Cuneiform/savedNets/SiameseBackup4_Cun_50.ckpt"
         path = "/home/jan/Desktop/Cuneiform/savedNets/SiameseBackupMetric4_Cun_100.ckpt"
+        path = "/home/jan/Desktop/Cuneiform/fold3/SiameseNetClassic_funcbackup4NetTest_48.ckpt"
+        path = "/home/jan/Desktop/Cuneiform/fold5/SiameseNetMetric_px64_enc600_Fin.ckpt"
         import matplotlib.pyplot as plt
+        #net,saver = sNet.runInit(sNet.backup3Net)
         net,saver = sNet.runInit(sNet.backup3Net)
-        #net,saver = sNet.runInit(sNet.backup4Net)
         print "starting calculations"
         s=time.time()
         with tf.Session() as sess:
@@ -133,7 +135,7 @@ def extract_images_to_folder(folder_path,page_paths = ["/home/jan/Desktop/Cuneif
 
     import Evaluation.Evals as evalFunc
 
-    path = "/home/jan/Desktop/Cuneiform/savedNets/SiameseBackup4_2_fin2.ckpt"
+    path = "/home/jan/Desktop/Cuneiform/fold3/SiameseNetClassic_funcbackup4NetTest_48.ckpt"
     #path = "/home/jan/Desktop/Cuneiform/savedNets/SiameseMetricBackup2_240000.ckpt"
 
     import matplotlib.pyplot as plt

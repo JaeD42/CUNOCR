@@ -5,7 +5,7 @@ from scipy import misc
 
 class LanguageLoader(object):
 
-    def __init__(self,dataset):
+    def __init__(self,dataset,px=48):
         """
 
         :param dataset: img dataset in the following format:
@@ -15,6 +15,38 @@ class LanguageLoader(object):
             z is the selected instance of the character
         """
         self.dataset = dataset
+        self.px=px
+
+    def get_epoch_size(self,language=0):
+        n=0
+        for ind,symbs in enumerate(self.dataset[language]):
+            n+=len(symbs)
+
+        return (n*(n-1))/2
+
+    def iterate_epoch_all_languages(self,batch_size):
+        example_list=[]
+        for lan in self.dataset:
+            example_list_lan = []
+            for ind, symbs in enumerate(lan):
+                example_list_lan.extend(zip([ind] * len(symbs), symbs))
+
+            import itertools
+            import random
+
+            example_list.extend(itertools.combinations(example_list_lan, 2))
+
+        random.shuffle(example_list)
+
+        for i in range(0, len(example_list), batch_size):
+            exs = example_list[i:i + batch_size]
+            x1 = [val[0][1] for val in exs]
+            x2 = [val[1][1] for val in exs]
+            y = [val[0][0] != val[1][0] for val in exs]
+            yield x1, x2, y
+
+
+
 
 
     def iterate_epoch(self,batch_size,language=0):
@@ -133,7 +165,7 @@ class LanguageLoader(object):
             randx1, randx2 = np.random.randint(0, len(rand_symb), 2)
             x1.append(rand_symb[randx1])
             x2.append(rand_symb[randx2])
-            y.append([1])
+            y.append(0)
 
         for i in range(batchsize - int(p_same * batchsize)):
             rand_lan1 = used_set[np.random.randint(0, len(used_set))]
@@ -146,7 +178,7 @@ class LanguageLoader(object):
             randx2 = np.random.randint(0, len(rand_symb2))
             x1.append(rand_symb1[randx1])
             x2.append(rand_symb2[randx2])
-            y.append([int(rand_symb1Num == rand_symb2Num)])
+            y.append(1-int(rand_symb1Num == rand_symb2Num))
 
         return x1, x2, y
 
@@ -266,7 +298,7 @@ class OmniGlotLoader(object):
             randx1, randx2 = np.random.randint(0, len(rand_symb), 2)
             x1.append(rand_symb[randx1])
             x2.append(rand_symb[randx2])
-            y.append(1)
+            y.append(0)
 
         for i in range(batchsize - int(p_same * batchsize)):
             rand_lan1 = used_set[np.random.randint(0, len(used_set))]
@@ -279,7 +311,7 @@ class OmniGlotLoader(object):
             randx2 = np.random.randint(0, len(rand_symb2))
             x1.append(rand_symb1[randx1])
             x2.append(rand_symb2[randx2])
-            y.append(int(rand_symb1Num == rand_symb2Num))
+            y.append(1-int(rand_symb1Num == rand_symb2Num))
 
         return x1, x2, y
 
