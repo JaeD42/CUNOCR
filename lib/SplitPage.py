@@ -97,7 +97,7 @@ def run(copy_region=False,px=32, do_dist=True, page_Path = "/home/jan/Desktop/Cu
 
         #import Nets.SiameseNet as sNet
 
-        import Nets.SiameseMetric as sNet
+        import Nets.Networks as sNet
         import tensorflow as tf
 
         import time
@@ -126,7 +126,7 @@ def run(copy_region=False,px=32, do_dist=True, page_Path = "/home/jan/Desktop/Cu
 import os
 
 def extract_images_to_folder(folder_path,page_paths = ["/home/jan/Desktop/Cuneiform/page clean.png"]):
-    import Nets.SiameseNet as sNet
+    import Nets.Networks as sNet
     import tensorflow as tf
 
     import time

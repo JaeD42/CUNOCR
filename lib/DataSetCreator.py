@@ -1,4 +1,4 @@
-import lib.loader as Load
+import lib.DataSetLoader as Load
 import Tkinter as tk
 import numpy as np
 import os
@@ -15,12 +15,27 @@ from matplotlib.backend_bases import key_press_handler
 from matplotlib.figure import Figure
 
 class DatasetCreator(object):
+    """
+    GUI to help create a dataset
+    Very quick and dirty as only intended to be used this once
+    TODO: Cleanup and rewrite to make using it bearable
+
+    """
 
     def createPath(self,path):
         if not os.path.exists(path):
             os.makedirs(path)
 
     def __init__(self,dataPath,savePath,net,session,px, sort_by=lambda x:np.mean(x)):
+        """
+
+        :param dataPath: Path to data
+        :param savePath: Path to new saving location
+        :param net: network to use
+        :param session: session
+        :param px: image size
+        :param sort_by: function to sort displayed images by
+        """
         self.sort_by = sort_by
         self.max_imgs_from_datset = 50
         self.px=px
@@ -339,8 +354,7 @@ class DatasetCreator(object):
 
 
     def run_gui_combine(self):
-        import DisjointSets as dSets
-        dSet = dSets.DisjointSets(range(len(self.data)))
+
         results = [0 for i in range(len(self.similarities))]
         self.dataInd = 0
 
@@ -413,7 +427,7 @@ class DatasetCreator(object):
 
 
 if __name__=="__main__":
-    import Nets.SiameseMetric as sNet
+    import Nets.Networks as sNet
     import tensorflow as tf
     netPath = "/home/jan/Desktop/Cuneiform/savedNets/SiameseBackupMetric4_Cun_100.ckpt"
     net, saver = sNet.runInit(sNet.backup3Net)

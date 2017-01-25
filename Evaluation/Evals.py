@@ -345,11 +345,11 @@ if __name__ == "__main__":
     #/home/jdisselhoff/Cuneiform/savedNets/SiameseBackup7_200000.ckpt
     path =folder_path+"savedNets/SiameseBackup4_2_fin.ckpt"
     print path
-    import Nets.SiameseNet as sNet
+    import Nets.Networks as sNet
     import tensorflow as tf
     import time
     import matplotlib.pyplot as plt
-    import lib.loader as Loader
+    import lib.DataSetLoader as Loader
     net,saver = sNet.runInit(sNet.backup4Net)
     print "starting calculations"
     s=time.time()

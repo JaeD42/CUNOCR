@@ -3,12 +3,27 @@ import numpy as np
 from scipy import ndimage
 
 class GraphCut(object):
+    """
+    Mincut algorithm for images
+    Should work, but was not used in thesis
+    """
 
     def __init__(self,sigma=0.8):
+        """
+
+        :param sigma: Sigma for gaussian filter to make image more connected
+        """
         self.sigma=sigma
 
 
     def calc_cut(self,img,source_rect=None,sink_rect=None):
+        """
+        Calcualte Graph cut of img based on a source and sink rectangle
+        :param img: Image to split
+        :param source_rect: Pixels in this rect count as source (x,y,x+w,y+w)
+        :param sink_rect: Pixels in this rect count as sink (x,y,x+w,y+w)
+        :return: List of two lists containing pixel indices of the resulting cut images
+        """
         G=nx.DiGraph()
         width,height=img.shape
 
@@ -43,40 +58,39 @@ class GraphCut(object):
 
         return partition
 
-        """
-        xs2 = xs-min(xs)
-        ys2 = ys-min(ys)
-
-        img_l = np.ones((max(xs2),max(ys2)))
-
-        for ind in range(len(xs)):
-            img_l[xs2[ind],ys2[ind]]=img[xs[ind],ys[ind]]
 
 
-        xs = np.array([p[0] for p in partition[1]])
-        ys = np.array([p[1] for p in partition[1]])
-
-        xs2 = xs - min(xs)
-        ys2 = ys - min(ys)
-
-        img_r = np.ones((max(xs2),max(ys2)))
-
-        for ind in range(len(xs)):
-            img_r[xs2[ind],ys2[ind]]=img[xs[ind],ys[ind]]
-
-
-
-
-
-        return img_l,img_r
-        """
-
-    def calc_up_down(self,img):
+    def calc_left_right(self,img):
         width, height = img.shape
         return self.calc_cut(img,source_rect=[0,width,0,height/3],sink_rect=[0,width,2*height/3, height])
 
-    def calc_left_right(self,img):
+    def calc_up_down(self,img):
         width, height = img.shape
         return self.calc_cut(img, source_rect=[0, width/3, 0, height], sink_rect=[2*width/3, width, 0, height])
 
 
+if __name__ == "__main__":
+    GC = GraphCut(sigma=0.9)
+    from scipy import misc
+    img = misc.imread("GraphCutEx1.png",mode='L')/255.0
+    print img
+    shape= img.shape
+    part = GC.calc_up_down(img)
+    print part[0]
+    print part[1]
+    imgCol = np.zeros((shape[0],shape[1],3))
+    for z in part[0]:
+        if type(z)!=tuple:
+            continue
+        x,y=z[:]
+
+        imgCol[x,y,0]=1-img[x,y]
+    for z in part[1]:
+        if type(z)!=tuple:
+            continue
+        x,y=z[:]
+        imgCol[x,y,1]=1-img[x,y]
+
+    import matplotlib.pyplot as plt
+    plt.imshow(imgCol)
+    plt.show()

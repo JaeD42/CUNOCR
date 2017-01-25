@@ -1,11 +1,15 @@
 import os
 import sys
 import lib.usefulFunctions as use_func
+
+"""
+make sure we are on path
+"""
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 folder_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))+"/"
 
-from Nets.SiameseMetric import SiameseNetMetric as mNet
-from Nets.SiameseNet import SiameseNetClassic as sNet
+from Nets.Networks import SiameseNetMetric as mNet
+from Nets.Networks import SiameseNetClassic as sNet
 import tensorflow as tf
 
 class NetCreator(object):
@@ -14,6 +18,18 @@ class NetCreator(object):
     """
 
     def __init__(self,creator_func=None,batch_size = 128, px = 48,p_same=0.05, encoding_size=600, conv_layer_size=[20, 40, 60, 100], conv_dim=[7, 5, 3, 3],fcl_layer_size=[], netClass = sNet):
+        """
+                Give lots of parameters to define the network completely
+                :param creator_func: In case we have a function to create the net, should be deprecated. Simply keep it at None and nothing bad will happen
+                :param batch_size: Recommended batch size for the network
+                :param px: image width/height (images should all be square, so only one value)
+                :param p_same: additional probability of drawing positive sample when doing random training as there are so few
+                :param encoding_size: Size of the encoding vector
+                :param conv_layer_size: list of integers describing the number of convolutions in each layer
+                :param conv_dim: list of integers describing the convolution size in each layer (all convs are square sized)
+                :param fcl_layer_size: list of integers describing the fcl size in each layer (can be empty, in this case there will only be a fully connected layer from the last convolution to the encoding vector and one from the encoding vector to output)
+                :param netClass: Which networkt type should be used, metric or classic
+        """
 
         if creator_func!=None:
             self.batch_size, self.px, self.net, self.p_same = creator_func()
@@ -36,13 +52,35 @@ class NetCreator(object):
         self.testDataLoader = None
 
     def addTrainDataLoader(self,LoaderClass, path):
+        """
+        Add a dataloader for training data
+        :param LoaderClass: Type of loader
+        :param path: path of data
+        :return: the instanciated loader
+        """
         self.trainDataLoader = LoaderClass(self.px, path)
+        return self.trainDataLoader
 
     def addTestDataLoader(self,LoaderClass, path):
+        """
+        Add a dataloader for testing data
+        :param LoaderClass: Type of loader
+        :param path: path of data
+        :return: the instanciated loader
+        """
         self.testDataLoader = LoaderClass(self.px, path)
+        return self.testDataLoader
 
 
     def saveNet(self, session, folder_name="", optional_file_name="", addendum=""):
+        """
+        Saves the network to file, automatically assumes project folder as source!
+        :param session: session where the network was created in
+        :param folder_name: Path to folder (based from project folder)
+        :param optional_file_name: Name of file, if none given uses values provided in init to create a file name
+        :param addendum: aditional string added to end of file to make filenames unique
+        :return:
+        """
         if folder_name=="":
             folder_name="savedNets"
 
@@ -68,6 +106,12 @@ class NetCreator(object):
         print "Net saved in "+save_path
 
     def loadNet(self,session,path):
+        """
+        Load a network from file
+        :param session: a tf.Session
+        :param path: path to file
+        :return:
+        """
         self.saver.restore(session, path)
 
 

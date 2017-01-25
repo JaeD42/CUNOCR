@@ -5,7 +5,7 @@ from scipy import misc
 
 class LanguageLoader(object):
 
-    def __init__(self,dataset):
+    def __init__(self,dataset,px=48):
         """
 
         :param dataset: img dataset in the following format:
@@ -15,6 +15,51 @@ class LanguageLoader(object):
             z is the selected instance of the character
         """
         self.dataset = dataset
+        self.px=px
+
+    def get_epoch_size(self,language=-1):
+        n = 0
+        if language==-1:
+            for lan in self.dataset:
+                temp=0
+                for symbs in lan:
+                    temp += len(symbs)
+                n+=temp*(temp-1)/2
+        else:
+            for ind,symbs in enumerate(self.dataset[language]):
+                n+=len(symbs)
+            n=(n*(n-1))/2
+
+        return n
+
+    def iterate_epoch_all_languages(self,batch_size):
+        """
+        Iterate through all languages and create training samples
+        :param batch_size: chunk size to return, last retun can be smaller
+        :return:
+        """
+        example_list=[]
+        for lan in self.dataset:
+            example_list_lan = []
+            for ind, symbs in enumerate(lan):
+                example_list_lan.extend(zip([ind] * len(symbs), symbs))
+
+            import itertools
+            import random
+
+            example_list.extend(itertools.combinations(example_list_lan, 2))
+
+        random.shuffle(example_list)
+
+        for i in range(0, len(example_list), batch_size):
+            exs = example_list[i:i + batch_size]
+            x1 = [val[0][1] for val in exs]
+            x2 = [val[1][1] for val in exs]
+            y = [val[0][0] != val[1][0] for val in exs]
+            yield x1, x2, y
+
+
+
 
 
     def iterate_epoch(self,batch_size,language=0):
@@ -23,31 +68,36 @@ class LanguageLoader(object):
         A batch of batchsize is returned in x1,x2,y where
         x1 and x2 are images and y is 0 if they belong to
         the same class
-        :param batch_size:
-        :param language:
+        :param batch_size: size of chunks returned, last chunk can be smaller
+        :param language: language to use, -1 uses all languages
         :return:
         """
-        lan = self.dataset[language]
-        example_list = []
-        for ind,symbs in enumerate(lan):
-            example_list.extend(zip([ind]*len(symbs),symbs))
+        if language == -1:
+            for val in self.iterate_epoch_all_languages(batch_size):
+                yield val
+        else:
+
+            lan = self.dataset[language]
+            example_list = []
+            for ind,symbs in enumerate(lan):
+                example_list.extend(zip([ind]*len(symbs),symbs))
 
 
-        import itertools
-        import random
-        
-        example_list = itertools.product(example_list,example_list)
+            import itertools
+            import random
 
-        example_list = [val for val in example_list if val[0]!=val[1]]
-        
-        random.shuffle(example_list)
+            example_list = itertools.combinations(example_list,2)
 
-        for i in range(0,len(example_list),batch_size):
-            exs = example_list[i:i+batch_size]
-            x1 = [val[0][1] for val in exs]
-            x2 = [val[1][1] for val in exs]
-            y = [val[0][0]!=val[1][0] for val in exs]
-            yield x1,x2,y
+            example_list = [val for val in example_list]
+
+            random.shuffle(example_list)
+
+            for i in range(0,len(example_list),batch_size):
+                exs = example_list[i:i+batch_size]
+                x1 = [val[0][1] for val in exs]
+                x2 = [val[1][1] for val in exs]
+                y = [val[0][0]!=val[1][0] for val in exs]
+                yield x1,x2,y
 
 
 
@@ -133,7 +183,7 @@ class LanguageLoader(object):
             randx1, randx2 = np.random.randint(0, len(rand_symb), 2)
             x1.append(rand_symb[randx1])
             x2.append(rand_symb[randx2])
-            y.append([1])
+            y.append(0)
 
         for i in range(batchsize - int(p_same * batchsize)):
             rand_lan1 = used_set[np.random.randint(0, len(used_set))]
@@ -146,15 +196,56 @@ class LanguageLoader(object):
             randx2 = np.random.randint(0, len(rand_symb2))
             x1.append(rand_symb1[randx1])
             x2.append(rand_symb2[randx2])
-            y.append([int(rand_symb1Num == rand_symb2Num)])
+            y.append(1-int(rand_symb1Num == rand_symb2Num))
 
         return x1, x2, y
 
 
+class CuneiformSetLoader(LanguageLoader):
+    """
+    Loads Cuneiform dataset
+    """
+
+    def __init__(self, px, path):
+        """
+
+        :param px: size of the images
+        :param path: path of the dataset
+        """
+        self.px = px
+        dataset = self.preload(path)
+
+        super(CuneiformSetLoader, self).__init__(dataset)
+
+    def numpyify(self, img):
+        return np.reshape(np.array(img, dtype='float32'), (self.px, self.px, 1)) / 255.0
+
+    def preload(self, path):
+        language = []
+        folders = next(os.walk(path))[1]
+        folders.sort()
+        folders.sort(key=lambda x: len(x))
+
+        for fold in folders:
+            temp = []
+            symbs = next(os.walk(os.path.join(path, fold)))[2]
+            for symb in symbs:
+                temp.append(self.numpyify(
+                    misc.imresize(misc.imread(os.path.join(path, fold, symb), mode='L'), (self.px, self.px))))
+            language.append(temp)
+
+        dataset = [language]
+        return dataset
+
 
 class OmniGlotLoader(object):
+    """
+    Class to load Omniglot characters, seems bloated as it contains both
+    testing and training data, have to think about how to fix this
+    TODO: Make this more concise and short
+    """
 
-    def __init__(self,px, path = "lib/omniglot-master/images/"):
+    def __init__(self,px, path = "Data/Datasets/omniglot-master/images/"):
         self.px = px
         #self.path = path
         self.path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))+"/" + path
@@ -266,7 +357,7 @@ class OmniGlotLoader(object):
             randx1, randx2 = np.random.randint(0, len(rand_symb), 2)
             x1.append(rand_symb[randx1])
             x2.append(rand_symb[randx2])
-            y.append([1])
+            y.append(0)
 
         for i in range(batchsize - int(p_same * batchsize)):
             rand_lan1 = used_set[np.random.randint(0, len(used_set))]
@@ -279,7 +370,7 @@ class OmniGlotLoader(object):
             randx2 = np.random.randint(0, len(rand_symb2))
             x1.append(rand_symb1[randx1])
             x2.append(rand_symb2[randx2])
-            y.append([int(rand_symb1Num == rand_symb2Num)])
+            y.append(1-int(rand_symb1Num == rand_symb2Num))
 
         return x1, x2, y
 
@@ -305,40 +396,11 @@ class OmniGlotLoader(object):
 
         return x1,x2,y
 
-class CuneiformSetLoader(LanguageLoader):
-    """
-    Loads additional Cuneiform dataset
-    """
-
-    def __init__(self,px,path):
-        self.px=px
-        dataset = self.preload(path)
-
-        super(CuneiformSetLoader,self).__init__(dataset)
-
-    def numpyify(self,img):
-        return np.reshape(np.array(img,dtype='float32'),(self.px,self.px,1))/255.0
-
-    def preload(self,path):
-        language=[]
-        folders = next(os.walk(path))[1]
-        folders.sort()
-        folders.sort(key=lambda x:len(x))
-
-        for fold in folders:
-            temp = []
-            symbs = next(os.walk(os.path.join(path,fold)))[2]
-            for symb in symbs:
-                temp.append(self.numpyify(misc.imresize(misc.imread(os.path.join(path,fold,symb),mode='L'),(self.px,self.px))))
-            language.append(temp)
-
-        dataset=[language]
-        return dataset
 
 
 
 if __name__ == "__main__":
-    CL = CuneiformSetLoader("RotatedDatabase",48)
+    CL = CuneiformSetLoader(48,'/home/jan/Desktop/Cuneiform/Data/img/newData27343')
     print CL.get_symbol(0,0,0)
 
     import matplotlib.pyplot as plt

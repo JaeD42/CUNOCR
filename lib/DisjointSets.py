@@ -1,14 +1,24 @@
 
 
 class DisjointSets(object):
-
+    """
+    Helper class to create Datasets
+    """
     def __init__(self,arr=[]):
+        """
+        Initialize with list
+        :param arr:
+        """
         self.sets = [set([i]) for i in arr]
         self.is_set = [True for i in arr]
 
-    def in_same(self,x,y):
-        a=x
-        b=y
+    def in_same(self,a,b):
+        """
+        Test if two values are in same set
+        :param a:
+        :param b:
+        :return:
+        """
 
         while not self.is_set[b]:
             b=self.sets[b]
@@ -23,6 +33,12 @@ class DisjointSets(object):
             return False
 
     def merge(self,x,y):
+        """
+        Merge two sets
+        :param x:
+        :param y:
+        :return:
+        """
 
         while not self.is_set[x]:
             x=self.sets[x]
