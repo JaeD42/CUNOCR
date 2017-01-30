@@ -5,11 +5,13 @@ Datasets are contained in folder Data/Datasets as zip file
 
 
 ##Requirements
-
-- tensorflow
+- python 2.7
+- tensorflow 0.10 (should also work on newer versions)
 - scipy
+- sklearn if you want mds plots
 - omniglot dataset if training from zero
 - tqdm if you want progression bars
+
 
 ##Use
 
@@ -45,3 +47,23 @@ for i in range(25):
     netCreator.saveNet(sess, folder_name="foldClassic/", addendum="Test_%s" % i)
 
 ```
+To visualize created distances use
+
+```python
+from Evaluation.ImageCreator import ImageCreator
+
+imgCreator = ImageCreator(netCreator.net,sess)
+distanceMatrix,classes = imgCreator.CalcDistMat(testingSet.dataset,[4,5,6,7,8])
+imgCreator.MDSPlot(distanceMatrix,cols=classes)
+```
+
+
+### Note
+Most files have a __main__ implementation which will probably fail
+as the code has massively changed over time. Much experimentation was
+done in the notebooks but is absolutely not commented (abandon all hope ye...)
+
+NetCreator & Trainer work fine, but be careful when training complete epochs 
+as this will take a long time. 
+
+
