@@ -54,6 +54,7 @@ class NetCreator(object):
     def addTrainDataLoader(self,LoaderClass, path):
         """
         Add a dataloader for training data
+        Deprecated
         :param LoaderClass: Type of loader
         :param path: path of data
         :return: the instanciated loader
@@ -64,6 +65,7 @@ class NetCreator(object):
     def addTestDataLoader(self,LoaderClass, path):
         """
         Add a dataloader for testing data
+        Deprecated
         :param LoaderClass: Type of loader
         :param path: path of data
         :return: the instanciated loader
@@ -113,5 +115,9 @@ class NetCreator(object):
         :return:
         """
         self.saver.restore(session, path)
+
+    def initialize(self,session):
+        init = tf.initialize_all_variables()
+        session.run(init)
 
 

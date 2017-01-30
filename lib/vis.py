@@ -1,6 +1,11 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import time
+
+"""
+Classes used for animated visualization of error progression and Roc curves etc
+"""
+
 class Visualiser(object):
 
     def __init__(self):
@@ -104,16 +109,15 @@ class ScatterVisualiser(Visualiser):
 Example of Use:
 """
 
-"""
-v = ImageVisualiser("Test",(10,10))
-e = ErrorVisualiser("ETest",2,["updownup","uuuup"])
-for i in range(10):
-    for j in range(10):
-        d = np.zeros((10,10))
-        d[i][j]=1
-        v.add_data(d)
-        v.show()
-        e.add_data([j,i])
-        e.show()
-        time.sleep(0.1)
-"""
+if __name__ == "__main__":
+    v = ImageVisualiser("Test",(10,10))
+    e = ErrorVisualiser("ETest",2,["updownup","uuuup"])
+    for i in range(10):
+        for j in range(10):
+            d = np.zeros((10,10))
+            d[i][j]=1
+            v.add_data(d)
+            v.show()
+            e.add_data([j,i])
+            e.show()
+            time.sleep(0.1)

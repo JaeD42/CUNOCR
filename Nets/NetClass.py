@@ -1,4 +1,6 @@
 import tensorflow as tf
+import numpy as np
+import ops
 class Net(object):
 
     def __init__(self,shapeImg,conv_layer_size = [20, 40, 60, 100], conv_dim = [7, 5, 3, 3], fcl_layer_size = [], encoding_size=400,lr=0.01, regularization=False,reg_constant=0.001):
@@ -12,6 +14,7 @@ class Net(object):
         self.enc_weights=[]
         self.regularization =regularization
         self.reg_constant = reg_constant
+        self.build()
 
     def build_encoding(self, x):
         """
