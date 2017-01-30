@@ -83,12 +83,13 @@ if __name__ == "__main__":
         if type(z)!=tuple:
             continue
         x,y=z[:]
-
+	imgCol[x,y,:]=[0,0,0]
         imgCol[x,y,0]=1-img[x,y]
     for z in part[1]:
         if type(z)!=tuple:
             continue
         x,y=z[:]
+	imgCol[x,y,:]=[0,0,0]
         imgCol[x,y,1]=1-img[x,y]
 
     import matplotlib.pyplot as plt
